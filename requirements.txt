@@ -1,0 +1,22 @@
+# Core
+numpy
+pandas
+tqdm
+
+# PyTorch
+torch
+torchvision
+timm
+
+# Machine Learning / Metrics
+scikit-learn
+
+# Image Processing
+opencv-python
+Pillow
+albumentations
+h5py
+
+# Visualization
+matplotlib
+seaborn
