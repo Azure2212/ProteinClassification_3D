@@ -76,16 +76,16 @@ parser = argparse.ArgumentParser(description="Prepare data and run training for 
 
 # Paths (now optional because they have defaults)
 parser.add_argument("--train_protein_path", type=str, 
-                    default="/data2/atran16/ProteinClassification_AnhTuanTran/3D_PDB_Dataset/240_24/TrainProteinPNG240")
+                    default="/data/atran16/ProteinClassification_3D/3D_PDB_Dataset/TrainProteinPNG600")
 
 parser.add_argument("--valid_protein_path", type=str,
-                    default="/data2/atran16/ProteinClassification_AnhTuanTran/3D_PDB_Dataset/240_24/ValidProteinPNG24")
+                    default="/data/atran16/ProteinClassification_3D/3D_PDB_Dataset/ValidProteinPNG24")
 
 parser.add_argument("--test_image_path", type=str,
-                    default="/data2/atran16/ProteinClassification_AnhTuanTran/3D_PDB_Dataset/testingDataFromProfessorSu")
+                    default="/data/atran16/ProteinClassification_3D/3D_PDB_Dataset/testingDataFromProfessorSu")
 
 parser.add_argument("--full_rs_dir", type=str,
-                    default="/data2/atran16/ProteinClassification_AnhTuanTran2/trained_results")
+                    default="/data/atran16/ProteinClassification_3D/trained_results/03142026_train/EfficientNetV2_L")
 
 # Data parameters
 parser.add_argument("--image_size", type=int, default=224)
@@ -170,9 +170,8 @@ elif configs["model"] == "CoAtNet":
     model = model.to(device)
     print("Loading CoAtNet2 model successfully!\n")
 elif configs["model"] == "EfficientNetV2":
-    model = load_EfficientNetV2(num_classes = configs["n_classes"], pretrained_path=configs["pretrained_path"], device=device)
+    model = load_EfficientNetV2(num_classes = configs["n_classes"], type_size = "l", pretrained_path=configs["pretrained_path"], device=device)
     model = model.to(device)
-    print("Loading EfficientNetV2_s model successfully!\n")
 elif configs["model"] == "MaxViT":
     model = load_VIT_SizeT(num_classes = configs["n_classes"], pretrained_path=configs["pretrained_path"], device=device)
     model = model.to(device)
