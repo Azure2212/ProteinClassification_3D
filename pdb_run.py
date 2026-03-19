@@ -30,7 +30,7 @@ sys.path.append(f"{root_project_dir}/models")
 from models import (
     load_Resnet,
     load_ConvNeXt,
-    load_CoAtNet2,
+    load_CoAtNet,
     load_EfficientNetV2,
     load_VIT_SizeT,
     load_RegNetY16GF,
@@ -165,7 +165,7 @@ elif configs["model"] == "ConvNeXt":
     model = model.to(device)
     print("Loading ConvNeXt model successfully!\n")
 elif configs["model"] == "CoAtNet":
-    model = load_CoAtNet2(num_classes = configs["n_classes"], pretrained_path=configs["pretrained_path"], device=device)
+    model = load_CoAtNet(num_classes = configs["n_classes"], pretrained_path=configs["pretrained_path"], device=device)
     model = model.to(device)
     print("Loading CoAtNet2 model successfully!\n")
 elif "EfficientNetV2" in configs["model"]:
