@@ -28,7 +28,7 @@ sys.path.append(f"{root_project_dir}/models")
 # from regNetY16GF import load_regNetY16GF
 # from swinV2B import load_swinV2B   
 from models import (
-    load_Resnet50,
+    load_Resnet,
     load_ConvNeXt,
     load_CoAtNet2,
     load_EfficientNetV2,
@@ -157,10 +157,9 @@ print(f"\ntop k: {topk}")
 print(f"The device is being used is: {device}\n")
 
 #=============== Loading Model ================#
-if configs["model"] == "Resnet50":
-    model = load_Resnet50(num_classes = configs["n_classes"], pretrained_path=configs["pretrained_path"], device=device)
+if "Resnet" in configs["model"]:
+    model = load_Resnet(name = configs["model"], num_classes = configs["n_classes"], pretrained_path=configs["pretrained_path"], device=device)
     model = model.to(device)
-    print("Loading ResNet50 model successfully!\n")
 elif configs["model"] == "ConvNeXt":
     model = load_ConvNeXt(num_classes = configs["n_classes"], pretrained_path=configs["pretrained_path"], device=device)
     model = model.to(device)
@@ -169,8 +168,8 @@ elif configs["model"] == "CoAtNet":
     model = load_CoAtNet2(num_classes = configs["n_classes"], pretrained_path=configs["pretrained_path"], device=device)
     model = model.to(device)
     print("Loading CoAtNet2 model successfully!\n")
-elif configs["model"] == "EfficientNetV2":
-    model = load_EfficientNetV2(num_classes = configs["n_classes"], type_size = "l", pretrained_path=configs["pretrained_path"], device=device)
+elif "EfficientNetV2" in configs["model"]:
+    model = load_EfficientNetV2(name = configs["model"], num_classes = configs["n_classes"], pretrained_path=configs["pretrained_path"], device=device)
     model = model.to(device)
 elif configs["model"] == "MaxViT":
     model = load_VIT_SizeT(num_classes = configs["n_classes"], pretrained_path=configs["pretrained_path"], device=device)

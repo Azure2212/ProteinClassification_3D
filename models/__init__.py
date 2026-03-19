@@ -1,4 +1,4 @@
-from .resnet import load_Resnet50
+from .resnet import load_Resnet
 from .convnext import load_ConvNeXt
 from .coAtNet2 import load_CoAtNet2
 from .efficientNetV2 import load_EfficientNetV2
