@@ -9,7 +9,7 @@ import torch
 def specificOptimizerPerModel(modelName, model, learning_rate):
 
     # 🔵 Transformer models
-    if modelName in ["SwinV2B", "MaxViT", "CoAtNet"]:
+    if "CoAtNet" in modelName or "SwinV2B" in modelName or "MaxViT" in modelName:
 
         no_wd_keys = {
             "bias","LayerNorm.weight","norm.weight","norm.bias",
@@ -39,7 +39,7 @@ def specificOptimizerPerModel(modelName, model, learning_rate):
         )
 
     # 🟢 EfficientNetV2
-    elif modelName in ["EfficientNetV2", "Resnet50", "ConvNeXt"]:
+    elif "EfficientNetV2" in modelName or "Resnet" in modelName or "ConvNeXt" in modelName:
         return torch.optim.AdamW(
             model.parameters(),
             lr=learning_rate,
