@@ -165,7 +165,7 @@ elif configs["model"] == "ConvNeXt":
     model = model.to(device)
     print("Loading ConvNeXt model successfully!\n")
 elif "CoAtNet" in configs["model"]:
-    model = load_CoAtNet(num_classes = configs["n_classes"], pretrained_path=configs["pretrained_path"], device=device)
+    model = load_CoAtNet(name = configs["model"], num_classes = configs["n_classes"], pretrained_path=configs["pretrained_path"], device=device)
     model = model.to(device)
     print("Loading CoAtNet2 model successfully!\n")
 elif "EfficientNetV2" in configs["model"]:

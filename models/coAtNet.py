@@ -5,10 +5,10 @@ def load_CoAtNet(name, num_classes, pretrained_path="", device="cpu"):
     if name == "CoAtNet_2":
         model = timm.create_model("coatnet_2_rw_224", pretrained=True, num_classes=num_classes, drop_rate=0.2, drop_path_rate=0.3)
         print("Loading CoAtNet_2 model successfully!\n")
-    elif model == "CoAtNet_3":
+    elif name == "CoAtNet_3":
         model = timm.create_model("coatnet_3_rw_224", pretrained=True, num_classes=num_classes, drop_rate=0.2, drop_path_rate=0.3)
         print("Loading CoAtNet_3 model successfully!\n")
-    elif model == "CoAtNet_4":
+    elif name == "CoAtNet_4":
         model = timm.create_model("coatnet_4_rw_224", pretrained=True, num_classes=num_classes, drop_rate=0.2, drop_path_rate=0.3)
         print("Loading CoAtNet_4 model successfully!\n")
     else:

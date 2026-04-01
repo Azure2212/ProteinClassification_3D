@@ -5,12 +5,12 @@ import torch
 def load_EfficientNetV2(name, num_classes, pretrained_path="", device="cpu"):
     if name == "EfficientNetV2_s":
         # EfficientNetV2-S
-        name = timm.create_model("tf_efficientnetv2_s", pretrained=True,
+        model = timm.create_model("tf_efficientnetv2_s", pretrained=True,
             num_classes=num_classes, drop_rate=0.2, drop_path_rate=0.2)
         print("Loading EfficientNetV2_s model successfully!\n")
     elif name == "EfficientNetV2_m":
         # EfficientNetV2-M
-        name = timm.create_model("tf_efficientnetv2_m", pretrained=True,
+        model = timm.create_model("tf_efficientnetv2_m", pretrained=True,
             num_classes=num_classes, drop_rate=0.2, drop_path_rate=0.2)
         print("Loading EfficientNetV2_m model successfully!\n")
     elif name == "EfficientNetV2_l":
