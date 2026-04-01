@@ -219,6 +219,8 @@ class PDB42_Trainer:
             self.val_loss_list.append(val_loss)
             self.val_acc_list.append(val_acc)
 
+            self.lr_scheduler.step()
+
             # Clamp minimum LR
             for param_group in self.optimizer.param_groups:
                 if param_group["lr"] < self.configs["min_lr"]:
@@ -234,13 +236,11 @@ class PDB42_Trainer:
                 f"LR: {current_lr:.7f}"
             )
 
-            print("Train Top-k, ", 
+            print("Train Top-k, ",
                   " || ".join([f"top{k}:{v*100:.2f}%" for k,v in train_acc_dict.items()]))
 
-            print("Val Top-k, ", 
+            print("Val Top-k, ",
                   " || ".join([f"top{k}:{v*100:.2f}%" for k,v in val_acc_dict.items()]))
-
-            self.lr_scheduler.step()
 
             # Save best model (based on Top1 validation)
             if val_acc > self.best_val_acc:
