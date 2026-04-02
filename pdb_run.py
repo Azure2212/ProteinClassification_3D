@@ -1,6 +1,7 @@
 ############# Importing System Libraries #############
 import sys
 import os
+import time 
 
 root_project_dir = os.getcwd().split("/")[:4]
 root_project_dir = "/".join(root_project_dir)
@@ -172,6 +173,7 @@ else:
     raise ValueError(f"Unsupported model type: {configs['model']}")
 
 #=============== Loading Dataset ================#
+start_time = time.time()
 train_image, train_label = LoadData(dataset_folder = configs["train_protein_path"], class_names=class_names, isDebug=configs['isDebug'])
 val_image, val_label = LoadData(dataset_folder = configs["valid_protein_path"], class_names=class_names, isDebug=configs['isDebug'])
 
@@ -184,6 +186,8 @@ val_data   = PBD42Dataset(val_image, val_label, image_size=configs["image_size"]
 train_loader = DataLoader(train_data, batch_size = configs["batch_size"], shuffle=True)
 val_loader = DataLoader(val_data , batch_size = configs["batch_size"], shuffle=False)
 
+end_time = time.time() 
+print(f"Total time For Loading and Preparing dataset: {end_time - start_time:.2f} seconds")
 #=============== Setup Trainer ================#
 
 trainer = PDB42_Trainer(
