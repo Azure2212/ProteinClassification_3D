@@ -187,7 +187,7 @@ train_loader = DataLoader(train_data, batch_size = configs["batch_size"], shuffl
 val_loader = DataLoader(val_data , batch_size = configs["batch_size"], shuffle=False)
 
 end_time = time.time() 
-print(f"Total time For Loading and Preparing dataset: {end_time - start_time:.2f} seconds")
+print(f"Total time For Loading and Preparing dataset({len(class_names)} proteins): {end_time - start_time:.2f} seconds")
 #=============== Setup Trainer ================#
 
 trainer = PDB42_Trainer(
