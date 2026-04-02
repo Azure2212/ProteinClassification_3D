@@ -17,7 +17,7 @@ import argparse
 sys.path.append(f"{root_project_dir}/utils/datasets")
 from torch.utils.data import DataLoader
 from pdb_ds import LoadData, PBD42Dataset, real_protein_testset
-
+from get_classes import get_classes
 ############# Importing models #############
 sys.path.append(f"{root_project_dir}/models")
 # from resnet import load_resnet50
@@ -134,22 +134,7 @@ save_path = os.path.join(configs['full_rs_dir'], "configs.json")
 with open(save_path, "w") as f:
     json.dump(configs, f, indent=4)
 
-class_names = {0: '1CQZ', 1: '1CR6', 2: '1EK1', 3: '1EK2', 4: '1LCP', 5: '1LK2', 6: '1R8X', 7: '1R8Y', 8: '1XFB', 
-               9: '1Y5M', 10: '1Y5R', 11: '1Z7L', 12: '2A73', 13: '2DJ1', 14: '2DJ2', 15: '2DJ3', 16: '2DML', 
-               17: '2FMU', 18: '2LZJ', 19: '2V31', 20: '3CQX', 21: '3EMN', 22: '3GB5', 23: '3GFD', 24: '3GH8', 
-               25: '3GMD', 26: '3O0V', 27: '3O0W', 28: '3O0X', 29: '3OQC', 30: '3RG0', 31: '3TNZ', 32: '3TO0', 
-               33: '3U0Z', 34: '4B90', 35: '4BKN', 36: '4C69', 37: '4K26', 38: '4NMH', 39: '4NOB', 40: '4NOF', 
-               41: '4O25', 42: '4O2L', 43: '4O2R', 44: '4P58', 45: '4P7F', 46: '4YMK', 47: '5AXA', 48: '5AXB', 
-               49: '5AXC', 50: '5AXD', 51: '5F0E', 52: '5FTK', 53: '5GU5', 54: '5H9O', 55: '5HJO', 56: '5HJR', 
-               57: '5IED', 58: '5IEE', 59: '5IEF', 60: '5IEG', 61: '5IKO', 62: '5MTV', 63: '5MVF', 64: '5PGZ', 
-               65: '5QIJ', 66: '5YQG', 67: '5YZH', 68: '5YZI', 69: '6QNP', 70: '6TTH', 71: '6UV5', 72: '6WF2', 
-               73: '6XZU', 74: '7EPM', 75: '7EXE', 76: '7JG2', 77: '7JTY', 78: '7K9N', 79: '7K9O', 80: '7K9Q', 
-               81: '7K9T', 82: '7KAD', 83: '7KB6', 84: '7KB8', 85: '7KBJ', 86: '7KBR', 87: '7KRY', 88: '7KUH', 
-               89: '7L7J', 90: '7L9E', 91: '7O37', 92: '7O3C', 93: '7O3E', 94: '7O3H', 95: '7SL1', 96: '7SL2', 
-               97: '7SL3', 98: '7SL4', 99: '7SL6', 100: '7SL7', 101: '7SOX', 102: '7STH', 103: '7STI', 104: '7STJ', 
-               105: '7STK', 106: '7U5I', 107: '7WTA', 108: '7Y04', 109: '7Y1B', 110: '7Y1Q', 111: '7YOB', 112: '8COD',
-               113: '8DNM', 114: '8DNO', 115: '8DNP', 116: '8DNS', 117: '8DNU', 118: '8DTL', 119: '8DTM', 120: '8EYI', 
-               121: '8EYX', 122: '8EYY', 123: '8EZ0', 124: '8H77', 125: '8KIB', 126: '8W49'}
+class_names = get_classes(configs["train_protein_path"])
 topk=(1,3,5,10,20)
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
