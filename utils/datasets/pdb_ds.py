@@ -108,3 +108,10 @@ def real_protein_testset(test_image_path, class_names):
                 images_per_class.append(os.path.join(path,image_path))
                 labels_per_class.append(label)
     return images_per_class, labels_per_class
+
+def get_classes(path):
+    allProteins = os.listdir(path)
+    classes = {}
+    for idx, name in enumerate(allProteins):
+        classes[idx] = name
+    return classes
