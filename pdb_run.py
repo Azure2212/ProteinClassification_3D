@@ -17,8 +17,8 @@ import argparse
 
 sys.path.append(f"{root_project_dir}/utils/datasets")
 from torch.utils.data import DataLoader
-from pdb_ds import LoadData, PBD42Dataset, real_protein_testset
-from get_classes import get_classes
+from pdb_ds import LoadData, PBD42Dataset, real_protein_testset, get_classes
+
 ############# Importing models #############
 sys.path.append(f"{root_project_dir}/models")
 # from resnet import load_resnet50
@@ -64,7 +64,6 @@ print(f"Random seed set to {SEED}")
 #/data2/atran16/Anaconda_ForTrain/bin/python /data2/atran16/ProteinClassification_AnhTuanTran/pdb_run.py --model RegNetY16GF --image_size 224
 #/data2/atran16/Anaconda_ForTrain/bin/python /data2/atran16/ProteinClassification_AnhTuanTran/pdb_run.py --model ConvNeXt --image_size 224
 #/data2/atran16/Anaconda_ForTrain/bin/python /data2/atran16/ProteinClassification_AnhTuanTran/pdb_run.py --model Resnet50 --image_size 224
-# screen -ls | awk '/Detached/ {print $1}' | xargs -r -I {} screen -S {} -X quit
 #screen -S mysessionTuan
 #Ctrl + A, then D -> leave the screen session running in the background
 #screen -r mysessionTuan
@@ -78,16 +77,16 @@ parser = argparse.ArgumentParser(description="Prepare data and run training for 
 
 # Paths (now optional because they have defaults)
 parser.add_argument("--train_protein_path", type=str, 
-                    default="/data/atran16/ProteinClassification_3D/3D_PDB_Dataset/TrainProteinPNG600")
+                    default="/data/atran16/ProteinClassification_3D/3D_PDB_5013/PNG126")
 
 parser.add_argument("--valid_protein_path", type=str,
-                    default="/data/atran16/ProteinClassification_3D/3D_PDB_Dataset/ValidProteinPNG24")
+                    default="/data/atran16/ProteinClassification_3D/3D_PDB_5013/PNG30_random")
 
 parser.add_argument("--test_image_path", type=str,
                     default="/data/atran16/ProteinClassification_3D/3D_PDB_Dataset/testingDataFromProfessorSu")
 
 parser.add_argument("--full_rs_dir", type=str,
-                    default="/data/atran16/ProteinClassification_3D/trained_results/03142026_train/EfficientNetV2_L")
+                    default="/data/atran16/ProteinClassification_3D/trained_results/04012026_train_126_30/SwinV2B")
 
 # Data parameters
 parser.add_argument("--image_size", type=int, default=224)
@@ -116,6 +115,7 @@ parser.add_argument("--max_epoch_num", type=int, default=60)
 parser.add_argument("--plateau_patience", type=int, default=10)
 parser.add_argument("--steplr", type=int, default=50)
 parser.add_argument("--log_step", type=int, default=1)
+parser.add_argument("--start_epoch", type=int, default=1)
 
 # Logging
 parser.add_argument("--project_name", type=str, default="ProteinClassification")
@@ -131,6 +131,7 @@ print("Configurations:")
 for key, value in configs.items():
     print(f"{key}: {value}")
     
+os.makedirs(configs['full_rs_dir'], exist_ok=True)
 save_path = os.path.join(configs['full_rs_dir'], "configs.json")
 
 with open(save_path, "w") as f:
@@ -197,7 +198,8 @@ trainer = PDB42_Trainer(
     device=device,
     configs=configs,
     class_names=class_names,
-    topk=topk
+    topk=topk,
+    start_epoch=configs['start_epoch']
 )
 
 #=============== Training start ================#
@@ -223,3 +225,5 @@ for k in topk:
         top_k = k,
         saveStatisticsReport=True
     )
+    
+#python3 /data/atran16/ProteinClassification_3D/pdb_run_main.py --model SwinV2B --image_size 256 --pretrained_path /data/atran16/ProteinClassification_3D/trained_results/04012026_train_126_30/SwinV2B/PDBRSTuan.pt --full_rs_dir /data/atran16/ProteinClassification_3D/trained_results/04012026_train_126_30/SwinV2B_goon --start_epoch 61 --max_epoch_num 40
