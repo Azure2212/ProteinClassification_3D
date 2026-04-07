@@ -64,6 +64,7 @@ print(f"Random seed set to {SEED}")
 #/data2/atran16/Anaconda_ForTrain/bin/python /data2/atran16/ProteinClassification_AnhTuanTran/pdb_run.py --model RegNetY16GF --image_size 224
 #/data2/atran16/Anaconda_ForTrain/bin/python /data2/atran16/ProteinClassification_AnhTuanTran/pdb_run.py --model ConvNeXt --image_size 224
 #/data2/atran16/Anaconda_ForTrain/bin/python /data2/atran16/ProteinClassification_AnhTuanTran/pdb_run.py --model Resnet50 --image_size 224
+# screen -ls | awk '/Detached/ {print $1}' | xargs -r -I {} screen -S {} -X quit
 #screen -S mysessionTuan
 #Ctrl + A, then D -> leave the screen session running in the background
 #screen -r mysessionTuan
@@ -102,7 +103,7 @@ parser.add_argument("--model", type=str, default="Resnet50") #"EfficientNetV2", 
 parser.add_argument("--pretrained_path", type=str, default="")
 
 # Optimization
-parser.add_argument("--lr", type=float, default=1e-3)
+parser.add_argument("--lr", type=float, default=3e-4)
 parser.add_argument("--min_lr", type=float, default=1e-7)
 parser.add_argument("--weight_decay", type=float, default=0.05)
 parser.add_argument("--optimizer_chose", type=str, default="RAdam")
@@ -136,6 +137,7 @@ with open(save_path, "w") as f:
     json.dump(configs, f, indent=4)
 
 class_names = get_classes(configs["train_protein_path"])
+configs["n_classes"] = len(class_names)
 topk=(1,3,5,10,20)
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
