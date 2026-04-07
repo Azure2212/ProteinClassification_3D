@@ -18,13 +18,15 @@ from freezingControl import freeze_backbone, unfreeze_last_n_stages, unfreeze_al
 
 class PDB42_Trainer:
     def __init__(self, model, device,
-                 configs, class_names=None, topk=(1,3,5,10,20)):
+                 configs, class_names=None, topk=(1,3,5,10,20),
+                 start_epoch=1):
 
         self.model = model.to(device)
-        self.device = device     
+        self.device = device
         self.topk = topk
         self.configs = configs
         self.class_names = class_names
+        self.start_epoch = start_epoch
 
         # Tracking
         self.train_loss_list = []
@@ -204,7 +206,7 @@ class PDB42_Trainer:
 
         early_stop_flag = 0
 
-        for epoch in range(1, epochs + 1):
+        for epoch in range(self.start_epoch, self.start_epoch + epochs):
             
             self.apply_finetune_strategy(epoch)
 
