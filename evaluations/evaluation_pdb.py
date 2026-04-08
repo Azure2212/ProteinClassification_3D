@@ -107,7 +107,7 @@ def realTest_cm(image_size, class_names, checkpoint_path, device, model, path2sa
     total_correct = sum(1 for t, p in zip(y_true, y_pred) if t == p)
     topk_acc = total_correct / len(y_true)
     
-    print(f"Top-{top_k} acceptance accuracy on real dataset: {topk_acc:.2%}")
+    print(f"Top-{top_k} acceptance accuracy on real dataset:{total_correct}/34({topk_acc:.2%})")
 
     # Optional: Confusion matrix
     cm = confusion_matrix(y_true, y_pred)
@@ -124,7 +124,7 @@ def realTest_cm(image_size, class_names, checkpoint_path, device, model, path2sa
     plt.savefig(cm_save_path, bbox_inches='tight', dpi=300)
     plt.close()
     
-    print(f"Confusion matrix saved to: {cm_save_path}")
+    #print(f"Confusion matrix saved to: {cm_save_path}")
     
     if saveStatisticsReport:
 
@@ -137,6 +137,8 @@ def realTest_cm(image_size, class_names, checkpoint_path, device, model, path2sa
         # Save CSV
         csv_path = os.path.join(path2save, "classification_report.csv")
         report_df.to_csv(csv_path, index=True)
-
+    
         print(f"Classification report saved to: {csv_path}")
+    
+    return total_correct
     

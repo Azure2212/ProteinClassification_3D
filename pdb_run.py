@@ -86,7 +86,7 @@ parser.add_argument("--test_image_path", type=str,
                     default="/data/atran16/ProteinClassification_3D/3D_PDB_Dataset/testingDataFromProfessorSu")
 
 parser.add_argument("--full_rs_dir", type=str,
-                    default="/data/atran16/ProteinClassification_3D/trained_results/04012026_train_126_30/SwinV2B")
+                    default="/data/atran16/ProteinClassification_3D/trained_results/04012026_train_126_30/SwinV2BWithSmoothing")
 
 # Data parameters
 parser.add_argument("--image_size", type=int, default=224)
@@ -110,12 +110,13 @@ parser.add_argument("--lr_scheduler", type=str, default="CosineAnnealingLR")
 
 # Training
 parser.add_argument("--device", type=str, default="cuda:0")
-parser.add_argument("--earlyStopping", type=int, default=1000)
+parser.add_argument("--earlyStopping", type=int, default=10)
 parser.add_argument("--max_epoch_num", type=int, default=60)
 parser.add_argument("--plateau_patience", type=int, default=10)
 parser.add_argument("--steplr", type=int, default=50)
 parser.add_argument("--log_step", type=int, default=1)
 parser.add_argument("--start_epoch", type=int, default=1)
+parser.add_argument("--label_smoothing", type=float, default=0.0)
 
 # Logging
 parser.add_argument("--project_name", type=str, default="ProteinClassification")
@@ -126,6 +127,7 @@ args = parser.parse_args()
 configs = vars(args)
 configs['rs_dir'] = os.path.join(configs['full_rs_dir'], "PDBRSTuan.pt")
 configs['tracking_csv'] = os.path.join(configs['full_rs_dir'], "trainingTracking.csv")
+configs['real_test_tracking_csv'] = os.path.join(configs['full_rs_dir'], "realTestTracking.csv")
 configs["image_size"] = (configs["image_size"], configs["image_size"])
 print("Configurations:")
 for key, value in configs.items():
@@ -139,7 +141,7 @@ with open(save_path, "w") as f:
 
 class_names = get_classes(configs["train_protein_path"])
 configs["n_classes"] = len(class_names)
-topk=(1,3,5,10,20)
+topk=(1,3,5,10,20,50,100,200,500)
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(f"\ntop k: {topk}")
@@ -191,6 +193,9 @@ val_loader = DataLoader(val_data , batch_size = configs["batch_size"], shuffle=F
 
 end_time = time.time() 
 print(f"Total time For Loading and Preparing dataset({len(class_names)} proteins): {end_time - start_time:.2f} seconds")
+#=============== Real classification result ================#
+images_per_class, labels_per_class = real_protein_testset(configs["test_image_path"], class_names)
+
 #=============== Setup Trainer ================#
 
 trainer = PDB42_Trainer(
@@ -199,7 +204,10 @@ trainer = PDB42_Trainer(
     configs=configs,
     class_names=class_names,
     topk=topk,
-    start_epoch=configs['start_epoch']
+    start_epoch=configs['start_epoch'],
+    label_smoothing=configs['label_smoothing'],
+    real_images_per_class=images_per_class,
+    real_labels_per_class=labels_per_class
 )
 
 #=============== Training start ================#
@@ -209,21 +217,6 @@ trainer.run(
     val_loader=val_loader,
     log_step=configs['log_step']
 )
-
-#=============== Real classification result ================#
-images_per_class, labels_per_class = real_protein_testset(configs["test_image_path"], class_names)
-for k in topk:
-    realTest_cm(
-        image_size=configs["image_size"],
-        class_names=class_names,
-        checkpoint_path=configs["rs_dir"],
-        device=device,
-        model=model,
-        path2save=configs["full_rs_dir"],
-        images_per_class=images_per_class,
-        labels_per_class=labels_per_class,
-        top_k = k,
-        saveStatisticsReport=True
-    )
     
 #python3 /data/atran16/ProteinClassification_3D/pdb_run_main.py --model SwinV2B --image_size 256 --pretrained_path /data/atran16/ProteinClassification_3D/trained_results/04012026_train_126_30/SwinV2B/PDBRSTuan.pt --full_rs_dir /data/atran16/ProteinClassification_3D/trained_results/04012026_train_126_30/SwinV2B_goon --start_epoch 61 --max_epoch_num 40
+#python3 /data/atran16/ProteinClassification_3D/pdb_run_main.py --model Resnet152 --image_size 224 --full_rs_dir /data/atran16/ProteinClassification_3D/trained_results/04012026_train_126_30/Resnet152 --start_epoch 1 --max_epoch_num 60 --label_smoothing 0.1

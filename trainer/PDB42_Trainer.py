@@ -11,7 +11,7 @@ root_project_dir = "/".join(root_project_dir)
 sys.path.append(os.path.join(root_project_dir, "evaluations"))
 sys.path.append(os.path.join(root_project_dir, "utils/trainingStrategies"))
 
-from evaluation_pdb import line_chart_k_acc, line_chart
+from evaluation_pdb import line_chart_k_acc, line_chart, realTest_cm
 from specificOptimizerPerModel  import specificOptimizerPerModel 
 from specificLRSchedulerPerModel import cosine_warmup_schedule
 from freezingControl import freeze_backbone, unfreeze_last_n_stages, unfreeze_all
@@ -19,7 +19,7 @@ from freezingControl import freeze_backbone, unfreeze_last_n_stages, unfreeze_al
 class PDB42_Trainer:
     def __init__(self, model, device,
                  configs, class_names=None, topk=(1,3,5,10,20),
-                 start_epoch=1):
+                 start_epoch=1, label_smoothing=0.0, real_images_per_class=None, real_labels_per_class=None):
 
         self.model = model.to(device)
         self.device = device
@@ -39,9 +39,15 @@ class PDB42_Trainer:
         self.best_val_loss = 0.0
         self.best_train_acc = 0.0
         self.best_train_loss = 0.0
+        
+        # For realTest
+        self.real_images_per_class =  real_images_per_class
+        self.real_labels_per_class = real_labels_per_class
+        self.topk = topk
 
         #Training configuration
-        self.loss_fn = nn.CrossEntropyLoss()
+        self.loss_fn = nn.CrossEntropyLoss(label_smoothing=label_smoothing)
+        print(f"Loss: CrossEntropyLoss(label_smoothing={label_smoothing})")
         
         # Optimizer
         self.optimizer = specificOptimizerPerModel(
@@ -74,6 +80,14 @@ class PDB42_Trainer:
             writer = csv.writer(f)
             writer.writerow(header)
         print("TrackingTraining CSV is created!")
+
+        # Real-test results CSV
+        real_test_header = ["epoch"] + [f"top{k}" for k in topk]
+        self.real_test_csv = os.path.join(configs["real_test_tracking_csv"])
+        with open(self.real_test_csv, mode="w", newline="") as f:
+            writer = csv.writer(f)
+            writer.writerow(real_test_header)
+        print("RealTest CSV is created!")
         
     def apply_finetune_strategy(self, epoch):
 
@@ -205,8 +219,11 @@ class PDB42_Trainer:
     def run(self, epochs, train_loader, val_loader, log_step=0):
 
         early_stop_flag = 0
+        mandatory_end_epoch = self.start_epoch + epochs - 1
+        epoch = self.start_epoch - 1
 
-        for epoch in range(self.start_epoch, self.start_epoch + epochs):
+        while True:
+            epoch += 1
             
             self.apply_finetune_strategy(epoch)
 
@@ -287,9 +304,33 @@ class PDB42_Trainer:
                 line_chart(self.configs["tracking_csv"], self.configs["full_rs_dir"], type="val_loss")
                 line_chart(self.configs["tracking_csv"], self.configs["full_rs_dir"], type="learning_rate")
                 
-            early_stop_flag += 1
-        
-            if early_stop_flag > self.configs['earlyStopping']:
+                #=============== Real classification result ================#
+
+                real_test_row = {"epoch": epoch}
+                for k in self.topk:
+                    total_correct = realTest_cm(
+                        image_size=self.configs["image_size"],
+                        class_names=self.class_names,
+                        checkpoint_path=self.configs["rs_dir"],
+                        device=self.device,
+                        model=self.model,
+                        path2save=self.configs["full_rs_dir"],
+                        images_per_class=self.real_images_per_class,
+                        labels_per_class=self.real_labels_per_class,
+                        top_k=k,
+                        saveStatisticsReport=True
+                    )
+                    real_test_row[f"top{k}"] = total_correct
+
+                with open(self.real_test_csv, mode="a", newline="") as f:
+                    writer = csv.DictWriter(f, fieldnames=real_test_row.keys())
+                    writer.writerow(real_test_row)
+                
+                
+            if epoch > mandatory_end_epoch:
+                early_stop_flag += 1
+
+            if epoch > mandatory_end_epoch and early_stop_flag > self.configs['earlyStopping']:
                 print(f"Early stopping activated at epoch {epoch}")
                 break
                 
