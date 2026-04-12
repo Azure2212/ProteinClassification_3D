@@ -238,12 +238,13 @@ class PDB42_Trainer:
             self.val_loss_list.append(val_loss)
             self.val_acc_list.append(val_acc)
 
-            self.lr_scheduler.step()
+            if epoch <= mandatory_end_epoch:
+                self.lr_scheduler.step()
 
-            # Clamp minimum LR
-            for param_group in self.optimizer.param_groups:
-                if param_group["lr"] < self.configs["min_lr"]:
-                    param_group["lr"] = self.configs["min_lr"]
+                # Clamp minimum LR
+                for param_group in self.optimizer.param_groups:
+                    if param_group["lr"] < self.configs["min_lr"]:
+                        param_group["lr"] = self.configs["min_lr"]
 
             current_lr = self.optimizer.param_groups[0]["lr"]
             self.lr_list.append(current_lr)
