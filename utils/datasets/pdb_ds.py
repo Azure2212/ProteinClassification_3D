@@ -1,4 +1,5 @@
 import os
+import json
 import cv2
 import numpy as np
 import torch
@@ -93,20 +94,16 @@ class PBD42Dataset(Dataset):
 def real_protein_testset(test_image_path, class_names):
     images_per_class = []
     labels_per_class = []
-    allStructureInTest = {0: "HYDROLASE", 1: "LIGASE", 2: "METAL_BINDING_PROTEIN", 3: "OXIDOREDUCTASE"}
-    for _, v in allStructureInTest.items():
-        
-        structures = os.path.join(test_image_path, v)
-        #print(structures)
-        proteins = os.listdir(structures)
-        for protein in proteins:
-            path = os.path.join(structures, protein)
-            label_to_find = protein.upper()
-            label = next((k for k, v in class_names.items() if v == label_to_find), -1)
-            image_paths = os.listdir(path)
-            for image_path in image_paths:
-                images_per_class.append(os.path.join(path,image_path))
-                labels_per_class.append(label)
+    class_names_inv = {v: k for k, v in class_names.items()}
+    proteins = sorted(os.listdir(test_image_path))
+    for protein in proteins:
+        path = os.path.join(test_image_path, protein)
+        if not os.path.isdir(path):
+            continue
+        label = class_names_inv.get(protein.upper(), -1)
+        for image_path in sorted(os.listdir(path)):
+            images_per_class.append(os.path.join(path, image_path))
+            labels_per_class.append(label)
     return images_per_class, labels_per_class
 
 def get_classes(path):
@@ -115,3 +112,8 @@ def get_classes(path):
     for idx, name in enumerate(allProteins):
         classes[idx] = name
     return classes
+
+def load_neighbors_per_ids(json_path):
+    with open(json_path, "r") as f:
+        raw = json.load(f)
+    return {pid: list(neighbors.keys()) for pid, neighbors in raw.items()}

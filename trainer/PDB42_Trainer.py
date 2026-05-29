@@ -19,7 +19,7 @@ from freezingControl import freeze_backbone, unfreeze_last_n_stages, unfreeze_al
 class PDB42_Trainer:
     def __init__(self, model, device,
                  configs, class_names=None, topk=(1,3,5,10,20),
-                 start_epoch=1, label_smoothing=0.0, real_images_per_class=None, real_labels_per_class=None):
+                 start_epoch=1, label_smoothing=0.0, real_images_per_class=None, real_labels_per_class=None, neighbors_per_ids=None):
 
         self.model = model.to(device)
         self.device = device
@@ -263,7 +263,7 @@ class PDB42_Trainer:
                   " || ".join([f"top{k}:{v*100:.2f}%" for k,v in val_acc_dict.items()]))
 
             # Save best model (based on Top1 validation)
-            if val_acc > self.best_val_acc:
+            if val_acc >= self.best_val_acc:
                 self.best_val_acc = val_acc
                 self.best_val_loss = val_loss
                 self.best_train_acc = train_acc

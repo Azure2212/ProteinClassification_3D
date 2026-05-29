@@ -17,7 +17,7 @@ import argparse
 
 sys.path.append(f"{root_project_dir}/utils/datasets")
 from torch.utils.data import DataLoader
-from pdb_ds import LoadData, PBD42Dataset, real_protein_testset, get_classes
+from pdb_ds import LoadData, PBD42Dataset, real_protein_testset, get_classes, load_neighbors_per_ids
 
 ############# Importing models #############
 sys.path.append(f"{root_project_dir}/models")
@@ -77,16 +77,19 @@ parser = argparse.ArgumentParser(description="Prepare data and run training for 
 
 # Paths (now optional because they have defaults)
 parser.add_argument("--train_protein_path", type=str, 
-                    default="/data/atran16/ProteinClassification_3D/3D_PDB_5013/PNG126")
+                    default="/data/atran16/ProteinClassification_3D/3D_PDB_5013_filter12/PNG/PNG126")
+
+parser.add_argument("--protein_neighbors_path", type=str, 
+                    default="/data/atran16/ProteinClassification_3D/3D_PDB_5013/protein_neighbors_5013.json")
 
 parser.add_argument("--valid_protein_path", type=str,
-                    default="/data/atran16/ProteinClassification_3D/3D_PDB_5013/PNG30_random")
+                    default="/data/atran16/ProteinClassification_3D/3D_PDB_5013_filter12/PNG/PNG30_random")
 
 parser.add_argument("--test_image_path", type=str,
-                    default="/data/atran16/ProteinClassification_3D/3D_PDB_Dataset/testingDataFromProfessorSu")
+                    default="/data/atran16/ProteinClassification_3D/testingDataFromProfessorSu_v2_229")
 
 parser.add_argument("--full_rs_dir", type=str,
-                    default="/data/atran16/ProteinClassification_3D/trained_results/04012026_train_126_30/SwinV2BWithSmoothing")
+                    default="/data/atran16/ProteinClassification_3D/trained_results/05016026_train_126_30/Resnet152_smth_0")
 
 # Data parameters
 parser.add_argument("--image_size", type=int, default=224)
@@ -116,7 +119,7 @@ parser.add_argument("--plateau_patience", type=int, default=10)
 parser.add_argument("--steplr", type=int, default=50)
 parser.add_argument("--log_step", type=int, default=1)
 parser.add_argument("--start_epoch", type=int, default=1)
-parser.add_argument("--label_smoothing", type=float, default=0.0)
+parser.add_argument("--label_smoothing", type=float, default=0.2)
 
 # Logging
 parser.add_argument("--project_name", type=str, default="ProteinClassification")
@@ -140,8 +143,9 @@ with open(save_path, "w") as f:
     json.dump(configs, f, indent=4)
 
 class_names = get_classes(configs["train_protein_path"])
+neighbors_per_ids = load_neighbors_per_ids(configs["protein_neighbors_path"])
 configs["n_classes"] = len(class_names)
-topk=(1,3,5,10,20,50,100,200,500)
+topk=(1,3,5,10,20,50,100)
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(f"\ntop k: {topk}")
@@ -207,7 +211,8 @@ trainer = PDB42_Trainer(
     start_epoch=configs['start_epoch'],
     label_smoothing=configs['label_smoothing'],
     real_images_per_class=images_per_class,
-    real_labels_per_class=labels_per_class
+    real_labels_per_class=labels_per_class,
+    neighbors_per_ids=neighbors_per_ids
 )
 
 #=============== Training start ================#
@@ -217,6 +222,3 @@ trainer.run(
     val_loader=val_loader,
     log_step=configs['log_step']
 )
-    
-#python3 /data/atran16/ProteinClassification_3D/pdb_run_main.py --model SwinV2B --image_size 256 --pretrained_path /data/atran16/ProteinClassification_3D/trained_results/04012026_train_126_30/SwinV2B/PDBRSTuan.pt --full_rs_dir /data/atran16/ProteinClassification_3D/trained_results/04012026_train_126_30/SwinV2B_goon --start_epoch 61 --max_epoch_num 40
-#python3 /data/atran16/ProteinClassification_3D/pdb_run_main.py --model Resnet152 --image_size 224 --full_rs_dir /data/atran16/ProteinClassification_3D/trained_results/04012026_train_126_30/Resnet152 --start_epoch 1 --max_epoch_num 60 --label_smoothing 0.1
