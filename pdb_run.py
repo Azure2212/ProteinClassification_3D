@@ -53,8 +53,8 @@ np.random.seed(SEED)
 torch.manual_seed(SEED)
 torch.cuda.manual_seed(SEED)
 torch.cuda.manual_seed_all(SEED)  
-torch.backends.cudnn.deterministic = True
-torch.backends.cudnn.benchmark = False
+torch.backends.cudnn.deterministic = False
+torch.backends.cudnn.benchmark = True
 print(f"Random seed set to {SEED}")
 #/data2/atran16/Anaconda_ForTrain/bin/python pdb_run.py --model EfficientNetV2 --image_size 384
 #/data2/atran16/Anaconda_ForTrain/bin/python /data2/atran16/ProteinClassification_AnhTuanTran/pdb_run.py --model EfficientNetV2 --image_size 384
@@ -192,8 +192,14 @@ print(f"number images in val data: {len(val_image)}({100*len(val_image)//(len(tr
 train_data = PBD42Dataset(train_image, train_label, image_size=configs["image_size"], type_transform="train")
 val_data   = PBD42Dataset(val_image, val_label, image_size=configs["image_size"], type_transform="val")
 
-train_loader = DataLoader(train_data, batch_size = configs["batch_size"], shuffle=True)
-val_loader = DataLoader(val_data , batch_size = configs["batch_size"], shuffle=False)
+_loader_kwargs = dict(
+    num_workers=configs["num_workers"],
+    pin_memory=True,
+    persistent_workers=configs["num_workers"] > 0,
+    prefetch_factor=4 if configs["num_workers"] > 0 else None,
+)
+train_loader = DataLoader(train_data, batch_size = configs["batch_size"], shuffle=True, **_loader_kwargs)
+val_loader = DataLoader(val_data , batch_size = configs["batch_size"], shuffle=False, **_loader_kwargs)
 
 end_time = time.time() 
 print(f"Total time For Loading and Preparing dataset({len(class_names)} proteins): {end_time - start_time:.2f} seconds")

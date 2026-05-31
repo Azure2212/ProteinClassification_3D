@@ -19,7 +19,7 @@ from freezingControl import freeze_backbone, unfreeze_last_n_stages, unfreeze_al
 class PDB42_Trainer:
     def __init__(self, model, device,
                  configs, class_names=None, topk=(1,3,5,10,20),
-                 start_epoch=1, label_smoothing=0.0, real_images_per_class=None, real_labels_per_class=None):
+                 start_epoch=1, label_smoothing=0.0, real_images_per_class=None, real_labels_per_class=None, neighbors_per_ids=None):
 
         self.model = model.to(device)
         self.device = device
@@ -48,6 +48,11 @@ class PDB42_Trainer:
         #Training configuration
         self.loss_fn = nn.CrossEntropyLoss(label_smoothing=label_smoothing)
         print(f"Loss: CrossEntropyLoss(label_smoothing={label_smoothing})")
+
+        # AMP (mixed precision) — only on CUDA
+        self.use_amp = (torch.device(device).type == "cuda") if not isinstance(device, str) else ("cuda" in device)
+        self.scaler = torch.cuda.amp.GradScaler(enabled=self.use_amp)
+        print(f"AMP (mixed precision fp16): {'ON' if self.use_amp else 'OFF'}")
         
         # Optimizer
         self.optimizer = specificOptimizerPerModel(
@@ -148,15 +153,17 @@ class PDB42_Trainer:
             desc=f"Epoch {epoch}"
         ):
 
-            images = images.to(self.device)
-            labels = labels.to(self.device)
+            images = images.to(self.device, non_blocking=True)
+            labels = labels.to(self.device, non_blocking=True)
 
-            logits = self.model(images)
-            loss = self.loss_fn(logits, labels)
+            self.optimizer.zero_grad(set_to_none=True)
+            with torch.cuda.amp.autocast(enabled=self.use_amp):
+                logits = self.model(images)
+                loss = self.loss_fn(logits, labels)
 
-            self.optimizer.zero_grad()
-            loss.backward()
-            self.optimizer.step()
+            self.scaler.scale(loss).backward()
+            self.scaler.step(self.optimizer)
+            self.scaler.update()
 
             batch_size = labels.size(0)
             total_loss += loss.item() * batch_size
@@ -191,11 +198,12 @@ class PDB42_Trainer:
                 desc=f"Epoch {epoch}"
             ):
 
-                images = images.to(self.device)
-                labels = labels.to(self.device)
+                images = images.to(self.device, non_blocking=True)
+                labels = labels.to(self.device, non_blocking=True)
 
-                logits = self.model(images)
-                loss = self.loss_fn(logits, labels)
+                with torch.cuda.amp.autocast(enabled=self.use_amp):
+                    logits = self.model(images)
+                    loss = self.loss_fn(logits, labels)
 
                 batch_size = labels.size(0)
                 total_loss += loss.item() * batch_size
@@ -263,7 +271,7 @@ class PDB42_Trainer:
                   " || ".join([f"top{k}:{v*100:.2f}%" for k,v in val_acc_dict.items()]))
 
             # Save best model (based on Top1 validation)
-            if val_acc > self.best_val_acc:
+            if val_acc >= self.best_val_acc:
                 self.best_val_acc = val_acc
                 self.best_val_loss = val_loss
                 self.best_train_acc = train_acc
