@@ -50,8 +50,9 @@ class PDB42_Trainer:
         print(f"Loss: CrossEntropyLoss(label_smoothing={label_smoothing})")
 
         # AMP (mixed precision) — only on CUDA
-        self.use_amp = (torch.device(device).type == "cuda") if not isinstance(device, str) else ("cuda" in device)
-        self.scaler = torch.cuda.amp.GradScaler(enabled=self.use_amp)
+        self.device_type = torch.device(device).type  # 'cuda' or 'cpu'
+        self.use_amp = self.device_type == "cuda"
+        self.scaler = torch.amp.GradScaler(self.device_type, enabled=self.use_amp)
         print(f"AMP (mixed precision fp16): {'ON' if self.use_amp else 'OFF'}")
         
         # Optimizer
@@ -157,7 +158,7 @@ class PDB42_Trainer:
             labels = labels.to(self.device, non_blocking=True)
 
             self.optimizer.zero_grad(set_to_none=True)
-            with torch.cuda.amp.autocast(enabled=self.use_amp):
+            with torch.amp.autocast(self.device_type, enabled=self.use_amp):
                 logits = self.model(images)
                 loss = self.loss_fn(logits, labels)
 
@@ -201,7 +202,7 @@ class PDB42_Trainer:
                 images = images.to(self.device, non_blocking=True)
                 labels = labels.to(self.device, non_blocking=True)
 
-                with torch.cuda.amp.autocast(enabled=self.use_amp):
+                with torch.amp.autocast(self.device_type, enabled=self.use_amp):
                     logits = self.model(images)
                     loss = self.loss_fn(logits, labels)
 
