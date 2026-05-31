@@ -107,7 +107,7 @@ def realTest_cm(image_size, class_names, checkpoint_path, device, model, path2sa
     total_correct = sum(1 for t, p in zip(y_true, y_pred) if t == p)
     topk_acc = total_correct / len(y_true)
     
-    print(f"Top-{top_k} acceptance accuracy on real dataset:{total_correct}/34({topk_acc:.2%})")
+    print(f"Top-{top_k} acceptance accuracy on real dataset:{total_correct}/{len(y_true)}({topk_acc:.2%})")
 
     # Optional: Confusion matrix
     cm = confusion_matrix(y_true, y_pred)
